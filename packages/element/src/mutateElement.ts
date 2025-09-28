@@ -134,7 +134,7 @@ export const mutateElement = <TElement extends Mutable<ExcalidrawElement>>(
     typeof fileId != "undefined" ||
     typeof points !== "undefined" ||
     // Root cause of curve not updating: the element’s shape cache isn’t invalidated when only curve changes, so the canvas keeps drawing the old cached text until a resize (which does invalidate).
-    // Fix: invalidate the shape cache when curve updates.
+    // Fix: invalidate the shape cache when curve updates
     typeof (updates as any).curve !== "undefined"
   ) {
     ShapeCache.delete(element);
