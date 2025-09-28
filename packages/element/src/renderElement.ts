@@ -417,47 +417,25 @@ const renderCurvedText = (
   textWidth: number,
 ) => {
 
-  if (Math.abs(curve) < 0.1) {
+  if (!text || Math.abs(curve) < 0.1) {
     context.fillText(text, x, y);
     return;
   }
 
-  const chars = text.split("");
-  const charWidths: number[] = [];
-  let totalWidth = 0;
+  const chars = [...text];
+  const widths = chars.map((c) => context.measureText(c).width);
+  const total = widths.reduce((a, b) => a + b, 0) || textWidth;
 
-  // Measure individual character widths
-  chars.forEach((char) => {
-    const width = context.measureText(char).width;
-    charWidths.push(width);
-    totalWidth += width;
-  });
-
-  // Use the actual measured width instead of textWidth parameter
-  const actualWidth = totalWidth;
-  const curveAmount = curve * 0.005; // Reduce sensitivity
-  const isUpward = curve > 0;
-  
-  let currentX = 0;
-  
-  
-  chars.forEach((char, index) => {
-    // Calculate position relative to text start
-    const charCenterX = currentX + charWidths[index] / 2;
-    
-    // Calculate curve offset using parabolic formula
-    // Normalize position to -1 to 1 range
-    const normalizedX = (charCenterX - actualWidth / 2) / (actualWidth / 2);
-    const curveOffset = curveAmount * normalizedX * normalizedX * actualWidth;
-    
-    // Calculate final position
-    const charX = x + charCenterX - actualWidth / 2;
-    const charY = y + (isUpward ? -curveOffset : curveOffset);
-    
-    context.fillText(char, charX - charWidths[index] / 2, charY);
-    
-    currentX += charWidths[index];
-  });
+  // draw each character along a parabola y = curve * (n^2), n in [-1, 1]
+  let advance = 0;
+  for (let i = 0; i < chars.length; i++) {
+    const w = widths[i];
+    const mid = advance + w / 2;
+    const n = (mid - total / 2) / (total / 2); // [-1, 1]
+    const dy = curve * (n * n); // sign(curve) controls up/down
+    context.fillText(chars[i], x + advance, y + dy);
+    advance += w;
+  }
 };
 
 const drawElementOnCanvas = (
