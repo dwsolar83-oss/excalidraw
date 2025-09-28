@@ -407,6 +407,59 @@ const drawImagePlaceholder = (
   );
 };
 
+// Helper function to render curved text
+const renderCurvedText = (
+  context: CanvasRenderingContext2D,
+  text: string,
+  x: number,
+  y: number,
+  curve: number,
+  textWidth: number,
+) => {
+
+  if (Math.abs(curve) < 0.1) {
+    context.fillText(text, x, y);
+    return;
+  }
+
+  const chars = text.split("");
+  const charWidths: number[] = [];
+  let totalWidth = 0;
+
+  // Measure individual character widths
+  chars.forEach((char) => {
+    const width = context.measureText(char).width;
+    charWidths.push(width);
+    totalWidth += width;
+  });
+
+  // Use the actual measured width instead of textWidth parameter
+  const actualWidth = totalWidth;
+  const curveAmount = curve * 0.005; // Reduce sensitivity
+  const isUpward = curve > 0;
+  
+  let currentX = 0;
+  
+  
+  chars.forEach((char, index) => {
+    // Calculate position relative to text start
+    const charCenterX = currentX + charWidths[index] / 2;
+    
+    // Calculate curve offset using parabolic formula
+    // Normalize position to -1 to 1 range
+    const normalizedX = (charCenterX - actualWidth / 2) / (actualWidth / 2);
+    const curveOffset = curveAmount * normalizedX * normalizedX * actualWidth;
+    
+    // Calculate final position
+    const charX = x + charCenterX - actualWidth / 2;
+    const charY = y + (isUpward ? -curveOffset : curveOffset);
+    
+    context.fillText(char, charX - charWidths[index] / 2, charY);
+    
+    currentX += charWidths[index];
+  });
+};
+
 const drawElementOnCanvas = (
   element: NonDeletedExcalidrawElement,
   rc: RoughCanvas,
@@ -532,12 +585,26 @@ const drawElementOnCanvas = (
         );
 
         for (let index = 0; index < lines.length; index++) {
-          context.fillText(
-            lines[index],
-            horizontalOffset,
-            index * lineHeightPx + verticalOffset,
-          );
+          const line = lines[index];
+          const lineY = index * lineHeightPx + verticalOffset;
+
+          // Apply curve if it exists
+          if (element.curve && element.curve !== 0) {
+            const lineWidth = context.measureText(line).width;
+            renderCurvedText(
+              context,
+              line,
+              horizontalOffset,
+              lineY,
+              element.curve,
+              lineWidth,
+            );
+          } else {
+            context.fillText(line, horizontalOffset, lineY);
+          }
         }
+          
+ 
         context.restore();
         if (shouldTemporarilyAttach) {
           context.canvas.remove();

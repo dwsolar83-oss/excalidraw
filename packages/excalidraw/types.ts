@@ -345,6 +345,7 @@ export interface AppState {
   name: string | null;
   isResizing: boolean;
   isRotating: boolean;
+  isCurving: boolean;
   zoom: Zoom;
   openMenu: "canvas" | "shape" | null;
   openPopup:

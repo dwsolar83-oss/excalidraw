@@ -76,6 +76,22 @@ import type {
   ExcalidrawElbowArrowElement,
 } from "./types";
 
+const curveSingleTextElement = (
+  element: ExcalidrawTextElement,
+  scene: Scene,
+  pointerX: number,
+  pointerY: number,
+  centerY: number,
+) => {
+  // Calculate curve amount based on vertical distance from center
+  const distanceFromCenter = pointerY - centerY;
+  // Normalize the curve value - adjust sensitivity as needed
+  const curve = Math.max(-100, Math.min(100, distanceFromCenter * 0.5));
+  
+  scene.mutateElement(element, { curve });
+  scene.triggerUpdate();
+};
+
 // Returns true when transform (resizing/rotation) happened
 export const transformElements = (
   originalElements: PointerDownState["originalElements"],
@@ -103,8 +119,20 @@ export const transformElements = (
           shouldRotateWithDiscreteAngle,
         );
         updateBoundElements(element, scene);
-      }
-    } else if (transformHandleType) {
+      } 
+      } else if (transformHandleType === "curve" && isTextElement(element)) {
+      // Handle curve transformation for text elements
+      const centerY = element.y + element.height / 2;
+
+      curveSingleTextElement(
+        element,
+        scene,
+        pointerX,
+        pointerY,
+        centerY,
+      );
+      updateBoundElements(element, scene);
+    } else if (transformHandleType && transformHandleType !== "curve") {
       const elementId = selectedElements[0].id;
       const latestElement = elementsMap.get(elementId);
       const origElement = originalElements.get(elementId);
@@ -114,7 +142,7 @@ export const transformElements = (
           getNextSingleWidthAndHeightFromPointer(
             latestElement,
             origElement,
-            transformHandleType,
+            transformHandleType, // Now guaranteed to be TransformHandleDirection
             pointerX,
             pointerY,
             {
@@ -130,7 +158,7 @@ export const transformElements = (
           origElement,
           originalElements,
           scene,
-          transformHandleType,
+          transformHandleType, // Now guaranteed to be TransformHandleDirection
           {
             shouldMaintainAspectRatio,
             shouldResizeFromCenter,
@@ -155,7 +183,7 @@ export const transformElements = (
         centerY,
       );
       return true;
-    } else if (transformHandleType) {
+    } else if (transformHandleType && transformHandleType !== "curve") {
       const { nextWidth, nextHeight, flipByX, flipByY, originalBoundingBox } =
         getNextMultipleWidthAndHeightFromPointer(
           selectedElements,

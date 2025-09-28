@@ -254,6 +254,14 @@ export type ExcalidrawTextElement = _ExcalidrawElementBase &
      *  with font size (using `getLineHeightInPx` helper).
      */
     lineHeight: number & { _brand: "unitlessLineHeight" };
+        /**
+     * Text curve amount. Positive values curve upward, negative values curve downward.
+     * Value represents the intensity of the parabolic curve.
+     * 
+     * @default 0
+     */
+    curve: number;
+
   }>;
 
 export type ExcalidrawBindableElement =

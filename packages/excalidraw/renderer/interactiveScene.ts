@@ -572,7 +572,7 @@ const renderTransformHandles = (
       if (renderConfig.selectionColor) {
         context.strokeStyle = renderConfig.selectionColor;
       }
-      if (key === "rotation") {
+      if (key === "rotation" || key === "curve") {
         fillCircle(context, x + width / 2, y + height / 2, width / 2, true);
         // prefer round corners if roundRect API is available
       } else if (context.roundRect) {

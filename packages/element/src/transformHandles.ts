@@ -40,7 +40,7 @@ export type TransformHandleDirection =
   | "sw"
   | "se";
 
-export type TransformHandleType = TransformHandleDirection | "rotation";
+export type TransformHandleType = TransformHandleDirection | "rotation" | "curve";
 
 export type TransformHandle = Bounds;
 export type TransformHandles = Partial<{
@@ -55,6 +55,7 @@ const transformHandleSizes: { [k in PointerType]: number } = {
 };
 
 const ROTATION_RESIZE_HANDLE_GAP = 16;
+const CURVE_RESIZE_HANDLE_GAP = 32;
 
 export const DEFAULT_OMIT_SIDES = {
   e: true,
@@ -212,6 +213,21 @@ export const getTransformHandlesFromCoords = (
           cy,
           angle,
         ),
+        curve: omitSides.curve
+          ? undefined
+          : generateTransformHandle(
+              x1 + width / 2 - handleWidth / 2,
+              y1 -
+                dashedLineMargin -
+                handleMarginY +
+                centeringOffset -
+                CURVE_RESIZE_HANDLE_GAP / zoom.value,
+              handleWidth,
+              handleHeight,
+              cx,
+              cy,
+              angle,
+            ),
   };
 
   // We only want to show height handles (all cardinal directions)  above a certain size
@@ -286,6 +302,14 @@ export const getTransformHandles = (
     isElbowArrow(element)
   ) {
     return {};
+  }
+
+  // Only show curve handle for text elements
+  if (element.type !== "text") {
+    omitSides = {
+      ...omitSides,
+      curve: true,
+    };
   }
 
   if (element.type === "freedraw" || isLinearElement(element)) {

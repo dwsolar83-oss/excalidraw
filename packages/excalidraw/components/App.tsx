@@ -7276,7 +7276,8 @@ class App extends React.Component<AppProps, AppState> {
           );
         if (elementWithTransformHandleType != null) {
           if (
-            elementWithTransformHandleType.transformHandleType === "rotation"
+            elementWithTransformHandleType.transformHandleType === "rotation" ||
+            elementWithTransformHandleType.transformHandleType === "curve"
           ) {
             this.setState({
               resizingElement: elementWithTransformHandleType.element,
@@ -10978,8 +10979,9 @@ class App extends React.Component<AppProps, AppState> {
       // TODO: rename this state field to "isScaling" to distinguish
       // it from the generic "isResizing" which includes scaling and
       // rotating
-      isResizing: transformHandleType && transformHandleType !== "rotation",
+      isResizing: transformHandleType && transformHandleType !== "rotation" && transformHandleType !== "curve",
       isRotating: transformHandleType === "rotation",
+      isCurving: transformHandleType === "curve",
       activeEmbeddable: null,
     });
     const pointerCoords = pointerDownState.lastCoords;
@@ -11046,6 +11048,8 @@ class App extends React.Component<AppProps, AppState> {
       });
     }
 
+    const px = transformHandleType === "curve" ? pointerCoords.x : resizeX;
+    const py = transformHandleType === "curve" ? pointerCoords.y : resizeY;
     if (
       transformElements(
         pointerDownState.originalElements,
@@ -11057,8 +11061,8 @@ class App extends React.Component<AppProps, AppState> {
         selectedElements.some((element) => isImageElement(element))
           ? !shouldMaintainAspectRatio(event)
           : shouldMaintainAspectRatio(event),
-        resizeX,
-        resizeY,
+        px, 
+        py,
         pointerDownState.resize.center.x,
         pointerDownState.resize.center.y,
       )

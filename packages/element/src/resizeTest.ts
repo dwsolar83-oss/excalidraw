@@ -262,6 +262,8 @@ export const getCursorForResizingElement = (resizingElement: {
       break;
     case "rotation":
       return "grab";
+    case "curve":
+      return "ns-resize"; // Use vertical resize cursor for curve handle
   }
 
   if (cursor && element) {
